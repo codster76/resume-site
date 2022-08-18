@@ -1,1 +1,1 @@
-web: npx nx serve backend
+web: node dist/apps/backend/main.js
