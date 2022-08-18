@@ -1,0 +1,56 @@
+[
+    {
+        "id": "1",
+        "name": "stone",
+        "description": "An ordinary stone",
+        "value": "1",
+        "weight": "1",
+        "quantity": "1",
+        "tags": ["material", "throwable", "weaon"]
+    },
+    {
+        "id": "2",
+        "name": "sword",
+        "description": "The most standard of all weapons.",
+        "value": "20",
+        "weight": "1",
+        "quantity": "1",
+        "tags": ["weapon"]
+    },
+    {
+        "id": "3",
+        "name": "potion",
+        "description": "Very valuable healing item.",
+        "value": "100",
+        "weight": "0.5",
+        "quantity": "2",
+        "tags": ["healing", "consumable", "utility"]
+    },
+    {
+        "id": "4",
+        "name": "lantern",
+        "description": "A useful tool for producing light",
+        "value": "10",
+        "weight": "0.5",
+        "quantity": "1",
+        "tags": ["utility"]
+    },
+    {
+        "id": "5",
+        "name": "bow",
+        "description": "The ranged weapon of choice.",
+        "value": "20",
+        "weight": "0.5",
+        "quantity": "1",
+        "tags": ["weapon"]
+    },
+    {
+        "id": "6",
+        "name": "food",
+        "description": "Generic food item.",
+        "value": "1",
+        "weight": "0.2",
+        "quantity": "5",
+        "tags": ["consumable", "utility"]
+    }
+]
