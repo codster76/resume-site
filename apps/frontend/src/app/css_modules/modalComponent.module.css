@@ -1,0 +1,33 @@
+.modal {
+    display: block; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    align-items: center;
+    justify-content: space-around;
+    left: calc(calc(100% - var(--horizontal-size))/2);
+    top: calc(calc(100vh - var(--vertical-size))/2);
+    margin: auto;
+    background-color: white;
+    width: var(--horizontal-size);
+    height: var(--vertical-size);
+    --horizontal-size: 40%;
+    --vertical-size: 70vh;
+  }
+  
+  /* Modal Content/Box */
+.modalContent {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+    margin: 1em; /* doesn't seem to be doing anything */
+  }
+
+  /* This mainly exists to close the modal if you click outside of it */
+.modalBackdrop {
+    position: absolute;
+    background-color: rgba(68, 68, 68, 0.5);
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100vw;
+  }

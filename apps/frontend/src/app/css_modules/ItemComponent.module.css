@@ -1,0 +1,16 @@
+.flexContainer {
+    background-color: yellow;
+    display: flex;
+    min-height: 3em;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.flexContainer:hover {
+    background-color: yellowgreen;
+}
+
+.flexItem {
+    width: 20%;
+    text-align: center;
+}
