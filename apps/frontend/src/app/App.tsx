@@ -58,22 +58,7 @@ function App() {
         updateItems={updateItemList}
       />
       <ItemListComponent itemArray={itemList} />
-      <button
-        onClick={() =>
-          updateItemList([
-            {
-              id: '7',
-              name: 'test',
-              description: 'test',
-              value: 1,
-              weight: 2,
-              quantity: 3,
-            },
-          ])
-        }
-      >
-        TestButton
-      </button>
+      <button onClick={() => console.log(itemList)}>TestButton</button>
     </div>
   );
 

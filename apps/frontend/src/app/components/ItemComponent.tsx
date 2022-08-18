@@ -3,6 +3,7 @@ import { Item } from '@resume-site/shared';
 import itemStyle from '../css_modules/ItemComponent.module.css';
 import modalStyle from '../css_modules/modalComponent.module.css';
 import itemFormStyle from '../css_modules/ItemForm.module.css';
+import ItemFormComponent from './ItemFormComponent';
 
 export interface ItemComponentProps {
   item: Item;
@@ -38,55 +39,7 @@ const ItemComponent = (props: ItemComponentProps) => {
         style={showModal ? { display: 'block' } : { display: 'none' }}
       >
         <div className={modalStyle['modalContent']}>
-          <form onSubmit={itemFormChangeNameLater}>
-            <div style={{ display: 'flex' }}>
-              <label>Name: </label>
-              <input
-                type="text"
-                placeholder="Item Name"
-                value={props.item.name}
-                onChange={
-                  (e) =>
-                    (props.item.name =
-                      e.target.value) /* Why isn't this working??? */
-                }
-              ></input>
-            </div>
-            <div style={{ display: 'flex' }}>
-              <label>Description: </label>
-              <input
-                type="text"
-                placeholder="Description"
-                value={props.item.description}
-                onChange={(e) => console.log(e.target.value)}
-              ></input>
-            </div>
-            <div style={{ display: 'flex' }}>
-              <label>Quantity: </label>
-              <input
-                type="number"
-                value={props.item.quantity}
-                onChange={(e) => console.log(e.target.value)}
-              ></input>
-            </div>
-            <div style={{ display: 'flex' }}>
-              <label>Value: </label>
-              <input
-                type="number"
-                value={props.item.value}
-                onChange={(e) => console.log(e.target.value)}
-              ></input>
-            </div>
-            <div style={{ display: 'flex' }}>
-              <label>Weight: </label>
-              <input
-                type="number"
-                value={props.item.weight}
-                onChange={(e) => console.log(e.target.value)}
-              ></input>
-            </div>
-            <input type="submit" value="Save Item" />
-          </form>
+          <ItemFormComponent itemToDisplay={props.item} />
         </div>
       </div>
     </div>
