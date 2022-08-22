@@ -70,6 +70,7 @@ function App() {
     <globalState.Provider
       value={{ value: itemList, updateFunction: updateItemList }}
     >
+      <h2>Bad of Holding</h2>
       <div className={styles['background']}>
         <HeadingAndSortingComponent
           items={itemList}
