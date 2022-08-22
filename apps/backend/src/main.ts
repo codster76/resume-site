@@ -9,7 +9,7 @@ app.use(cors({ origin: 'http://localhost:4200' })); // Only allow requests from 
 app.use('/api/items', itemRoutes); // /api/items is the url everything will be accessible from
 
 app.get('/', (req: any, res: any) => {
-  res.send('asdgasdg');
+  res.send('Yep, this is the backend for my site');
 });
 
 const port = process.env.PORT || 5000;
