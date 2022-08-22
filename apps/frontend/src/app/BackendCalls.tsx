@@ -1,6 +1,7 @@
 import { Item } from '@resume-site/shared';
 
-const APIUrl = 'http://localhost:5000/api/items';
+// const APIUrl = 'http://localhost:5000/api/items';
+const APIUrl = 'https://resume-site-backend.herokuapp.com/api/items';
 
 // Get items
 export const getItemList = async () => {
