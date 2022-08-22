@@ -1,6 +1,7 @@
 import { Item } from '@resume-site/shared';
 import style from '../css_modules/ItemComponent.module.css';
 import React, { useState } from 'react';
+import { uid } from 'uid';
 
 export interface HeadingAndSortingComponentProps {
   items: Item[];
@@ -146,6 +147,7 @@ const HeadingAndSortingComponent = (props: HeadingAndSortingComponentProps) => {
       <div className={style['flexContainer']} style={{ userSelect: 'none' }}>
         {stateList.map((state) => (
           <div
+            key={uid() /* Honestly just a hacky way to avoid errors */}
             className={style['flexItem']}
             onClick={() => headingClickBehaviour(state)}
           >

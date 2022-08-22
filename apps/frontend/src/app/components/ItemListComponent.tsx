@@ -1,4 +1,5 @@
 import { Item } from '@resume-site/shared';
+import { uid } from 'uid';
 import style from '../css_modules/ItemComponent.module.css';
 import ItemComponent from './ItemComponent';
 
@@ -12,7 +13,10 @@ const ItemListComponent = (props: ItemListComponentProps) => {
   return (
     <div>
       {props.itemArray.map((item) => (
-        <ItemComponent item={item} />
+        <ItemComponent
+          key={uid() /* Honestly just a hacky way to avoid errors */}
+          item={item}
+        />
       ))}
     </div>
   );
