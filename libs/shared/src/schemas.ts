@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const itemSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().min(1),
   description: z.string(),
   value: z.number(),
   weight: z.number(),

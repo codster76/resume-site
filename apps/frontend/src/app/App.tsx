@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'; // useEffect runs right after rendering or whenever a value updates
 import { Item } from '@resume-site/shared';
 import styles from './css_modules/App.module.css';
+import { getItemList } from './BackendCalls';
 
 // Components
 import ItemComponent, { ItemComponentProps } from './components/ItemComponent';
@@ -37,19 +38,12 @@ function App() {
   // This basically runs right after rendering and fetches the item data
   useEffect(() => {
     const getItems = async () => {
-      const itemsFromServer = await fetchItems();
+      const itemsFromServer = await getItemList();
       updateItemList([...itemsFromServer]);
     };
 
     getItems();
   }, []); // You can put dependency values in this array, which can run this code whenever that value changes
-
-  const fetchItems = async () => {
-    const res = await fetch('http://localhost:5000/api/items');
-    const items = await res.json();
-
-    return items;
-  };
 
   return (
     <div className={styles['background']}>
