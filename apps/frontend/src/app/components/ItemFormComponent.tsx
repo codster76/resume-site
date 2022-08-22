@@ -1,14 +1,52 @@
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { Item, itemSchema } from '@resume-site/shared';
-import { useEffect, useState } from 'react';
-import { updateItem } from '../BackendCalls';
+import {
+  forwardRef,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from 'react';
+import { addItem, updateItem, deleteItem } from '../BackendCalls';
 import { ZodError, ZodIssue } from 'zod';
+import { uid } from 'uid';
+import { globalState } from '../App';
+import ItemListComponent from './ItemListComponent';
 
 export interface ItemFormComponentProps {
   itemToDisplay: Item;
+  typeOfForm: FormType;
+  closeModal: () => void;
 }
 
-const ItemFormComponent = (props: ItemFormComponentProps) => {
+export enum FormType {
+  Add,
+  Update,
+}
+
+export interface ItemFormComponentRefs {
+  resetFunction: () => void;
+}
+
+const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
+  const [errorMessages, updateErrorMessage] = useState<string[]>([]);
+  const [showErrorMessage, updateShowErrorMessage] = useState<boolean>(false);
+
+  const globalItemState = useContext(globalState);
+
+  // This will be invoked by the parent whenever the modal is closed so that the values reset after closing.
+  useImperativeHandle(
+    ref,
+    () => {
+      return {
+        resetFunction: () => {
+          runReset();
+        },
+      };
+    },
+    []
+  ); // The empty array here can be used to update ref whenever a value changes
+
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       id: props.itemToDisplay.id,
@@ -20,27 +58,18 @@ const ItemFormComponent = (props: ItemFormComponentProps) => {
     },
   });
 
-  const [errorMessages, updateErrorMessage] = useState<string[]>([]);
-  const [showErrorMessage, updateShowErrorMessage] = useState<boolean>(false);
-
   // Resets the values in the form whenever the state changes. The forms get stuck at their initial values if you don't use this.
   useEffect(() => {
-    reset({
-      id: props.itemToDisplay.id,
-      name: props.itemToDisplay.name,
-      description: props.itemToDisplay.description,
-      quantity: props.itemToDisplay.quantity,
-      value: props.itemToDisplay.value,
-      weight: props.itemToDisplay.weight,
-    });
+    runReset();
   }, [props.itemToDisplay]);
 
-  // I'm not sure if this is a good way to update the data in the program, but it seems to work okay
-  const submitBehaviour = (data: Item) => {
+  // It's honestly kind of a toss-up here. Editing props.itemToDisplay here probably isn't the best way to pull this off,
+  // but also, trying to access it from the global state would require a search, which I don't think is optimal.
+  const editItem = (data: Item) => {
     try {
       itemSchema.parse(data);
 
-      updateShowErrorMessage(true);
+      updateShowErrorMessage(false);
 
       // Update the item in the internal list
       props.itemToDisplay.name = data.name;
@@ -51,26 +80,87 @@ const ItemFormComponent = (props: ItemFormComponentProps) => {
 
       // Update the item in hte database
       updateItem(props.itemToDisplay, props.itemToDisplay.id);
+      props.closeModal();
 
       console.log(props.itemToDisplay);
     } catch (e) {
-      updateShowErrorMessage(false);
+      updateShowErrorMessage(true);
 
       if (e instanceof ZodError) {
-        const errorList: string[] = [];
-        for (let i = 0; i < e.issues.length; i++) {
-          errorList[i] = `${e.issues[i].path[0]} Error: ${e.issues[i].message}`;
-        }
-        updateErrorMessage(errorList);
+        handleError(e);
       } else {
         updateErrorMessage(['Unknown Error']);
       }
     }
   };
 
+  // I know updating the list on both client and server-side separately isn't a great idea, but considering large lists or slow
+  // connections, this is probably better than having to fetch again every time an item is added
+  const createNewItem = (data: Item) => {
+    try {
+      updateShowErrorMessage(false);
+
+      itemSchema.parse(data);
+      data.id = uid();
+      addItem(data); // Update the item in the database
+      globalItemState.updateFunction([...globalItemState.value, data]); // Note this one
+      props.closeModal();
+    } catch (e) {
+      updateShowErrorMessage(true);
+
+      if (e instanceof ZodError) {
+        handleError(e);
+      } else {
+        updateErrorMessage(['Unknown Error']);
+        console.log(e);
+      }
+    }
+  };
+
+  const deleteCurrentItem = () => {
+    deleteItem(props.itemToDisplay.id);
+    const listToModify = [...globalItemState.value];
+    const itemIndex = globalItemState.value.indexOf(props.itemToDisplay);
+    listToModify.splice(itemIndex, 1);
+    globalItemState.updateFunction(listToModify);
+    props.closeModal();
+  };
+
+  const handleError = (error: ZodError) => {
+    const errorList: string[] = [];
+    for (let i = 0; i < error.issues.length; i++) {
+      errorList[
+        i
+      ] = `${error.issues[i].path[0]} Error: ${error.issues[i].message}`;
+    }
+    updateErrorMessage(errorList);
+  };
+
+  const runReset = () => {
+    reset({
+      id: props.itemToDisplay.id,
+      name: props.itemToDisplay.name,
+      description: props.itemToDisplay.description,
+      quantity: props.itemToDisplay.quantity,
+      value: props.itemToDisplay.value,
+      weight: props.itemToDisplay.weight,
+    });
+  };
+
   return (
     <div>
-      <form onSubmit={handleSubmit((data: Item) => submitBehaviour(data))}>
+      <form
+        onSubmit={handleSubmit((data: Item) => {
+          switch (props.typeOfForm) {
+            case FormType.Add:
+              createNewItem(data);
+              break;
+            case FormType.Update:
+              editItem(data);
+              break;
+          }
+        })}
+      >
         <input {...register('id')} type="hidden"></input>
         <div style={{ display: 'flex' }}>
           <label>Name: </label>
@@ -115,14 +205,16 @@ const ItemFormComponent = (props: ItemFormComponentProps) => {
         <input type="submit" value="Save Item" />
       </form>
       <div
-        style={showErrorMessage ? { display: 'none' } : { display: 'block' }}
+        style={showErrorMessage ? { display: 'block' } : { display: 'none' }}
       >
         {errorMessages.map((errorMessage) => (
           <div>{errorMessage}</div>
         ))}
       </div>
+
+      <button onClick={() => deleteCurrentItem()}>Delete Item</button>
     </div>
   );
-};
+});
 
 export default ItemFormComponent;

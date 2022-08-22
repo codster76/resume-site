@@ -1,12 +1,33 @@
-import React, { useEffect, useState } from 'react'; // useEffect runs right after rendering or whenever a value updates
+import React, { createContext, useEffect, useState } from 'react'; // useEffect runs right after rendering or whenever a value updates
 import { Item } from '@resume-site/shared';
 import styles from './css_modules/App.module.css';
+import modalStyle from './css_modules/modalComponent.module.css';
 import { getItemList } from './BackendCalls';
 
 // Components
 import ItemComponent, { ItemComponentProps } from './components/ItemComponent';
 import ItemListComponent from './components/ItemListComponent';
 import HeadingAndSortingComponent from './components/HeadingAndSortingComponent';
+import ModalComponent from './components/ModalComponent';
+import ItemFormComponent, { FormType } from './components/ItemFormComponent';
+
+export const globalState = createContext<{
+  value: Item[];
+  updateFunction: React.Dispatch<React.SetStateAction<Item[]>>;
+}>({
+  // I have no clue what the hell is with these types
+  value: [
+    {
+      id: '0',
+      name: 'default',
+      description: 'default',
+      value: 0,
+      weight: 0,
+      quantity: 0,
+    },
+  ],
+  updateFunction: () => console.log('default'),
+});
 
 function App() {
   const [itemList, updateItemList] = useState<Item[]>([
@@ -46,14 +67,35 @@ function App() {
   }, []); // You can put dependency values in this array, which can run this code whenever that value changes
 
   return (
-    <div className={styles['background']}>
-      <HeadingAndSortingComponent
-        items={itemList}
-        updateItems={updateItemList}
-      />
-      <ItemListComponent itemArray={itemList} />
-      <button onClick={() => console.log(itemList)}>TestButton</button>
-    </div>
+    <globalState.Provider
+      value={{ value: itemList, updateFunction: updateItemList }}
+    >
+      <h2>Bad of Holding</h2>
+      <div className={styles['background']}>
+        <HeadingAndSortingComponent
+          items={itemList}
+          updateItems={updateItemList}
+        />
+        <ItemListComponent itemArray={itemList} />
+        <button onClick={() => updateDisplayModal(true)}>Add Item</button>
+        <ModalComponent open={displayModal} updateOpen={updateDisplayModal}>
+          <div className={modalStyle['modalContent']}>
+            <ItemFormComponent
+              itemToDisplay={{
+                id: '0',
+                name: '',
+                description: '',
+                quantity: 0,
+                value: 0,
+                weight: 0,
+              }}
+              typeOfForm={FormType.Add}
+              closeModal={() => updateDisplayModal(false)}
+            />
+          </div>
+        </ModalComponent>
+      </div>
+    </globalState.Provider>
   );
 
   //<ItemComponent item={itemList[Math.min(0,itemList.length)] /* Math.min in there basically doesn't allow you to put any number higher than the array length */} />

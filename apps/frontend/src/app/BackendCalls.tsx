@@ -1,6 +1,7 @@
 import { Item } from '@resume-site/shared';
 
-const APIUrl = 'http://localhost:5000/api/items';
+// const APIUrl = 'http://localhost:5000/api/items';
+const APIUrl = 'https://resume-site-backend.herokuapp.com/api/items';
 
 // Get items
 export const getItemList = async () => {
@@ -16,7 +17,7 @@ export const updateItem = (
   IDOfItemToReplace: string
 ) => {
   console.log(`database updated for: ${IDOfItemToReplace}`);
-  async function updateItem() {
+  async function updateItemAsync() {
     const header = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -26,5 +27,32 @@ export const updateItem = (
     const data = await response.json();
     console.log(data);
   }
-  updateItem();
+  updateItemAsync();
+};
+
+// Add an item
+export const addItem = (itemToAdd: Item) => {
+  async function addItemAsync() {
+    const header = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...itemToAdd }),
+    };
+    const response = await fetch(`${APIUrl}`, header);
+    const data = await response.json();
+    console.log(data);
+  }
+  addItemAsync();
+};
+
+export const deleteItem = (idToDelete: string) => {
+  async function deleteItemAsync() {
+    const header = {
+      method: 'DELETE',
+    };
+    const response = await fetch(`${APIUrl}/${idToDelete}`, header);
+    const data = await response.json();
+    console.log(data);
+  }
+  deleteItemAsync();
 };

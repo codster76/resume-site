@@ -1,18 +1,18 @@
 import express from 'express';
 import { uid } from 'uid';
-import { Item } from '@resume-site/shared'; // This is the item type interface
+import { Item, itemSchema } from '@resume-site/shared'; // This is the item type interface
 import untypedData from '../assets/items.json';
+import { ZodError } from 'zod';
 
 const data = untypedData as unknown as Item[];
 const router = express.Router();
-// const data: Item[] = require('../../items.json'); // This is my fake database.
 
-// Send all items
+// Get all items
 router.get('/', (req: any, res: any) => {
   res.send(data);
 });
 
-// Send a specific item
+// Get a specific item based on ID
 router.get('/:id', (req: any, res: any) => {
   const requestedItem: Item | undefined = data.find((item) => {
     return item.id === req.params.id;
@@ -20,7 +20,7 @@ router.get('/:id', (req: any, res: any) => {
 
   if (requestedItem === undefined) {
     res.status(404);
-    res.send('No item matching that name');
+    res.send(`Item with ID: ${req.params.id} could not be found`);
     return;
   }
   res.send(requestedItem);
@@ -28,23 +28,28 @@ router.get('/:id', (req: any, res: any) => {
 
 // Add a new item
 router.post('/', (req: any, res: any) => {
-  // Input checking
-  if (checkIfItem(req.body)) {
-    res.status(400).send('Invalid item');
-    return;
-  }
+  try {
+    itemSchema.parse(req.body);
 
-  // We are assuming the request will be a valid item
-  const newItem: Item = {
-    id: uid(),
-    name: req.body.name,
-    description: req.body.description,
-    value: req.body.value,
-    weight: req.body.weight,
-    quantity: req.body.quantity,
-  };
-  data.push(newItem);
-  res.send(newItem);
+    const newItem: Item = {
+      id: req.body.id,
+      name: req.body.name,
+      description: req.body.description,
+      value: req.body.value,
+      weight: req.body.weight,
+      quantity: req.body.quantity,
+    };
+    data.push(newItem);
+    res.send(newItem);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      res.status(400).send(generateErrorMessage(e));
+      return;
+    } else {
+      res.status(400).send('Invalid item');
+      return;
+    }
+  }
 });
 
 // Modify an existing item
@@ -55,24 +60,30 @@ router.put('/:id', (req: any, res: any) => {
   });
 
   if (itemToFind === undefined) {
-    res.status(404).send('Item does not exist');
+    res.status(404).send(`Item with ID: ${req.params.id} could not be found`);
     return;
   }
 
-  // Input checking
-  if (checkIfItem(req.body)) {
-    res.status(400).send('Invalid item');
-    return;
+  try {
+    itemSchema.parse(req.body);
+
+    // Modify the item
+    itemToFind.name = req.body.name;
+    itemToFind.description = req.body.description;
+    itemToFind.value = req.body.value;
+    itemToFind.weight = req.body.weight;
+    itemToFind.quantity = req.body.quantity;
+
+    res.send(data);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      res.status(400).send(generateErrorMessage(e));
+      return;
+    } else {
+      res.status(400).send('Invalid item');
+      return;
+    }
   }
-
-  // Modify the item
-  itemToFind.name = req.body.name;
-  itemToFind.description = req.body.description;
-  itemToFind.value = req.body.value;
-  itemToFind.weight = req.body.weight;
-  itemToFind.quantity = req.body.quantity;
-
-  res.send(data);
 });
 
 router.delete('/:id', (req: any, res: any) => {
@@ -82,7 +93,7 @@ router.delete('/:id', (req: any, res: any) => {
   });
 
   if (itemToFind === undefined) {
-    res.status(404).send('Item does not exist');
+    res.status(404).send(`Item with ID: ${req.params.id} could not be found`);
     return;
   }
 
@@ -90,18 +101,13 @@ router.delete('/:id', (req: any, res: any) => {
   res.send(data.splice(itemIndex, 1));
 });
 
-function checkIfItem(item: Item): boolean {
-  if (
-    !item.name ||
-    !item.description ||
-    !item.value ||
-    !item.weight ||
-    !item.quantity
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
+const generateErrorMessage = (errors: ZodError): string => {
+  let errorMessage = '';
+  errors.issues.forEach(
+    (error) => (errorMessage += `${error.path[0]} error: ${error.code}, `)
+  );
+
+  return errorMessage;
+};
 
 export default router;
