@@ -16,7 +16,7 @@ export const updateItem = (
   IDOfItemToReplace: string
 ) => {
   console.log(`database updated for: ${IDOfItemToReplace}`);
-  async function updateItem() {
+  async function updateItemAsync() {
     const header = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -26,5 +26,32 @@ export const updateItem = (
     const data = await response.json();
     console.log(data);
   }
-  updateItem();
+  updateItemAsync();
+};
+
+// Add an item
+export const addItem = (itemToAdd: Item) => {
+  async function addItemAsync() {
+    const header = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...itemToAdd }),
+    };
+    const response = await fetch(`${APIUrl}`, header);
+    const data = await response.json();
+    console.log(data);
+  }
+  addItemAsync();
+};
+
+export const deleteItem = (idToDelete: string) => {
+  async function deleteItemAsync() {
+    const header = {
+      method: 'DELETE',
+    };
+    const response = await fetch(`${APIUrl}/${idToDelete}`, header);
+    const data = await response.json();
+    console.log(data);
+  }
+  deleteItemAsync();
 };

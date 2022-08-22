@@ -28,7 +28,6 @@ router.get('/:id', (req: any, res: any) => {
 
 // Add a new item
 router.post('/', (req: any, res: any) => {
-  // Input checking
   try {
     itemSchema.parse(req.body);
 
