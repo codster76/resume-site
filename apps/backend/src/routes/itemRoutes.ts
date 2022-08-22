@@ -32,7 +32,7 @@ router.post('/', (req: any, res: any) => {
     itemSchema.parse(req.body);
 
     const newItem: Item = {
-      id: uid(),
+      id: req.body.id,
       name: req.body.name,
       description: req.body.description,
       value: req.body.value,

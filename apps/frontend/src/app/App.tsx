@@ -11,16 +11,23 @@ import HeadingAndSortingComponent from './components/HeadingAndSortingComponent'
 import ModalComponent from './components/ModalComponent';
 import ItemFormComponent, { FormType } from './components/ItemFormComponent';
 
-export const globalState = createContext([
-  {
-    id: '0',
-    name: 'default',
-    description: 'default',
-    value: 0,
-    weight: 0,
-    quantity: 0,
-  },
-]);
+export const globalState = createContext<{
+  value: Item[];
+  updateFunction: React.Dispatch<React.SetStateAction<Item[]>>;
+}>({
+  // I have no clue what the hell is with these types
+  value: [
+    {
+      id: '0',
+      name: 'default',
+      description: 'default',
+      value: 0,
+      weight: 0,
+      quantity: 0,
+    },
+  ],
+  updateFunction: () => console.log('default'),
+});
 
 function App() {
   const [itemList, updateItemList] = useState<Item[]>([
@@ -60,7 +67,9 @@ function App() {
   }, []); // You can put dependency values in this array, which can run this code whenever that value changes
 
   return (
-    <globalState.Provider value={itemList}>
+    <globalState.Provider
+      value={{ value: itemList, updateFunction: updateItemList }}
+    >
       <div className={styles['background']}>
         <HeadingAndSortingComponent
           items={itemList}

@@ -11,6 +11,7 @@ import { addItem, updateItem, deleteItem } from '../BackendCalls';
 import { ZodError, ZodIssue } from 'zod';
 import { uid } from 'uid';
 import { globalState } from '../App';
+import ItemListComponent from './ItemListComponent';
 
 export interface ItemFormComponentProps {
   itemToDisplay: Item;
@@ -31,7 +32,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
   const [errorMessages, updateErrorMessage] = useState<string[]>([]);
   const [showErrorMessage, updateShowErrorMessage] = useState<boolean>(false);
 
-  const itemList = useContext(globalState);
+  const globalItemState = useContext(globalState);
 
   // This will be invoked by the parent whenever the modal is closed so that the values reset after closing.
   useImperativeHandle(
@@ -102,7 +103,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
       itemSchema.parse(data);
       data.id = uid();
       addItem(data); // Update the item in the database
-      itemList[itemList.length + 1] = { ...data }; // Update the item on the client-side list
+      globalItemState.updateFunction([...globalItemState.value, data]); // Note this one
       props.closeModal();
     } catch (e) {
       updateShowErrorMessage(true);
@@ -118,8 +119,10 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
 
   const deleteCurrentItem = () => {
     deleteItem(props.itemToDisplay.id);
-    const itemIndex = itemList.indexOf(props.itemToDisplay);
-    itemList.splice(itemIndex, 1);
+    const listToModify = [...globalItemState.value];
+    const itemIndex = globalItemState.value.indexOf(props.itemToDisplay);
+    listToModify.splice(itemIndex, 1);
+    globalItemState.updateFunction(listToModify);
     props.closeModal();
   };
 
