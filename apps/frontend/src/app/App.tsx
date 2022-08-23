@@ -71,13 +71,21 @@ function App() {
       value={{ value: itemList, updateFunction: updateItemList }}
     >
       <h2>Bad of Holding</h2>
+      <div className={styles['addButtonContainer']}>
+        <button
+          className={styles['addButton']}
+          onClick={() => updateDisplayModal(true)}
+        >
+          Add Item
+        </button>
+      </div>
+
       <div className={styles['background']}>
         <HeadingAndSortingComponent
           items={itemList}
           updateItems={updateItemList}
         />
         <ItemListComponent itemArray={itemList} />
-        <button onClick={() => updateDisplayModal(true)}>Add Item</button>
         <ModalComponent open={displayModal} updateOpen={updateDisplayModal}>
           <div className={modalStyle['modalContent']}>
             <ItemFormComponent

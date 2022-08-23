@@ -1,3 +1,31 @@
 .name {
-    font-size: 500;
+  font-size: 500;
+}
+
+.flexContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.flexItem {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+}
+
+.flexItem .label {
+  min-width: 10em;
+}
+
+.flexItem .descriptionField {
+  min-height: 5em;
+}
+
+.flexContainer .saveAndDeleteButtons {
+  display: flex;
+  min-height: 2em;
+  margin-top: 1em;
+  justify-content: space-between;
+  flex-grow: 1;
 }
