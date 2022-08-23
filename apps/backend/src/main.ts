@@ -5,18 +5,11 @@ import itemRoutes from './routes/itemRoutes';
 
 const app = express();
 app.use(express.json());
-<<<<<<< Updated upstream
-//app.use(cors({ origin: 'http://localhost:4200' })); // Only allow requests from localhost:4200
-app.use(
-  cors({ origin: 'https://resume-site-d8i5brpo3-codster76.vercel.app/' })
-);
-=======
 app.use(cors({ origin: 'http://localhost:4200' })); // Only allow requests from localhost:4200
 // app.use(cors({ origin: '*' })); // Only allow requests from localhost:4200
 // app.use(
 //   cors({ origin: 'https://resume-site-d8i5brpo3-codster76.vercel.app/' })
 // );
->>>>>>> Stashed changes
 app.use('/api/items', itemRoutes); // /api/items is the url everything will be accessible from
 
 app.get('/', (req: any, res: any) => {
