@@ -42,7 +42,7 @@ const ItemComponent = (props: ItemComponentProps) => {
             ref={formRef}
             itemToDisplay={props.item}
             typeOfForm={FormType.Update}
-            closeModal={() => updateShowModal(false)}
+            handleClose={() => updateShowModal(false)}
           />
         </div>
       </ModalComponent>

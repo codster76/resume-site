@@ -1,6 +1,6 @@
 import { Item } from '@resume-site/shared';
 import style from '../css_modules/ItemComponent.module.css';
-import React, { useState } from 'react';
+import React, { Reducer, useReducer, useState } from 'react';
 
 export interface HeadingAndSortingComponentProps {
   items: Item[];
@@ -23,13 +23,53 @@ let stateList: HeadingState[];
 
 // To add a new heading, just add a new state, then add that state to the stateList
 
+type State = {
+  nameHeading: string;
+  descriptionHeading: string;
+};
+
+type Action =
+  | {
+      type: 'updateNameHeading';
+      payload: string;
+    }
+  | {
+      type: 'updateDescriptionHeading';
+      payload: string;
+    };
+
+const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case 'updateDescriptionHeading':
+      return {
+        ...state,
+        nameHeading: action.payload,
+      };
+    case 'updateNameHeading':
+      return {
+        ...state,
+        descriptionHeading: action.payload,
+      };
+  }
+};
+
+const useCustomHook = () => {
+  const [state, dispatch] = useReducer<Reducer<State, Action>>(reducer, {
+    descriptionHeading: 'Description',
+    nameHeading: 'Name',
+  });
+  return { state, dispatch };
+};
+
 const HeadingAndSortingComponent = (props: HeadingAndSortingComponentProps) => {
-  const [nameHeading, updateNameHeading] = useState<string>('Name');
+  const { state, dispatch } = useCustomHook();
+
+  const [nameHeading, updateNameHeading] = useState('Name');
   const [descriptionHeading, updateDescriptionHeading] =
-    useState<string>('Description');
-  const [quantityHeading, updateQuantityHeading] = useState<string>('Quantity');
-  const [valueHeading, updateValueHeading] = useState<string>('Value');
-  const [weightHeading, updateWeightHeading] = useState<string>('Weight');
+    useState('Description');
+  const [quantityHeading, updateQuantityHeading] = useState('Quantity');
+  const [valueHeading, updateValueHeading] = useState('Value');
+  const [weightHeading, updateWeightHeading] = useState('Weight');
 
   // This array is made so that all of the states can be iterated through to display
   // These if statements are necessary because react will rerun this code and redeclare these variables

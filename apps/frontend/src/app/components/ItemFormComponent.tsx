@@ -3,6 +3,7 @@ import { Item, itemSchema } from '@resume-site/shared';
 import formStyle from '../css_modules/ItemForm.module.css';
 import {
   forwardRef,
+  useCallback,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -11,44 +12,50 @@ import {
 import { addItem, updateItem, deleteItem } from '../BackendCalls';
 import { ZodError, ZodIssue } from 'zod';
 import { uid } from 'uid';
-import { globalState } from '../App';
+import { GlobalStateContext } from '../App';
 import ItemListComponent from './ItemListComponent';
+
+export enum FormType {
+  Add = 'add',
+  Update = 'update',
+}
 
 export interface ItemFormComponentProps {
   itemToDisplay: Item;
   typeOfForm: FormType;
-  closeModal: () => void;
-}
-
-export enum FormType {
-  Add,
-  Update,
+  handleClose: () => void;
 }
 
 export interface ItemFormComponentRefs {
-  resetFunction: () => void;
+  handleReset: () => void;
 }
 
 const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
   const [errorMessages, updateErrorMessage] = useState<string[]>([]);
   const [showErrorMessage, updateShowErrorMessage] = useState<boolean>(false);
 
-  const globalItemState = useContext(globalState);
+  const globalItemState = useContext(GlobalStateContext);
 
   // This will be invoked by the parent whenever the modal is closed so that the values reset after closing.
-  useImperativeHandle(
-    ref,
-    () => {
-      return {
-        resetFunction: () => {
-          runReset();
-        },
-      };
-    },
-    []
-  ); // The empty array here can be used to update ref whenever a value changes
+  // useImperativeHandle(
+  //   ref,
+  //   () => {
+  //     return {
+  //       resetFunction: () => {
+  //         runReset();
+  //       },
+  //     };
+  //   },
+  //   []
+  // ); // The empty array here can be used to update ref whenever a value changes
 
-  const { register, handleSubmit, reset } = useForm({
+  // useEffect(() => {
+  //   return () => {
+  //     runReset();
+  //   };
+  // }, []);
+
+  const { register, handleSubmit, reset } = useForm<Item>({
     defaultValues: {
       id: props.itemToDisplay.id,
       name: props.itemToDisplay.name,
@@ -60,9 +67,6 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
   });
 
   // Resets the values in the form whenever the state changes. The forms get stuck at their initial values if you don't use this.
-  useEffect(() => {
-    runReset();
-  }, [props.itemToDisplay]);
 
   // It's honestly kind of a toss-up here. Editing props.itemToDisplay here probably isn't the best way to pull this off,
   // but also, trying to access it from the global state would require a search, which I don't think is optimal.
@@ -81,7 +85,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
 
       // Update the item in hte database
       updateItem(props.itemToDisplay, props.itemToDisplay.id);
-      props.closeModal();
+      props.handleClose();
 
       console.log(props.itemToDisplay);
     } catch (e) {
@@ -105,7 +109,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
       data.id = uid();
       addItem(data); // Update the item in the database
       globalItemState.updateFunction([...globalItemState.value, data]); // Note this one
-      props.closeModal();
+      props.handleClose();
     } catch (e) {
       updateShowErrorMessage(true);
 
@@ -124,7 +128,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
     const itemIndex = globalItemState.value.indexOf(props.itemToDisplay);
     listToModify.splice(itemIndex, 1);
     globalItemState.updateFunction(listToModify);
-    props.closeModal();
+    props.handleClose();
   };
 
   const handleError = (error: ZodError) => {
@@ -137,20 +141,21 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
     updateErrorMessage(errorList);
   };
 
-  const runReset = () => {
+  const handleReset = useCallback(() => {
     reset({
-      id: props.itemToDisplay.id,
-      name: props.itemToDisplay.name,
-      description: props.itemToDisplay.description,
-      quantity: props.itemToDisplay.quantity,
-      value: props.itemToDisplay.value,
-      weight: props.itemToDisplay.weight,
+      ...props.itemToDisplay,
     });
-  };
+  }, [props.itemToDisplay, reset]);
 
+  useEffect(() => {
+    handleReset();
+  }, [props.itemToDisplay, handleReset]);
+
+  const formTitle =
+    props.typeOfForm === FormType.Add ? 'Add Item' : 'Edit Item';
   return (
     <div>
-      <h2>{props.typeOfForm === FormType.Add ? 'Add Item' : 'Edit Item'}</h2>
+      <h2>{formTitle}</h2>
       <form
         onSubmit={handleSubmit((data: Item) => {
           switch (props.typeOfForm) {
@@ -163,7 +168,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
           }
         })}
       >
-        <div className={formStyle['flexContainer']}>
+        <div className={formStyle.flexContainer}>
           <input {...register('id')} type="hidden"></input>
           <div className={formStyle['flexItem']}>
             <label className={formStyle['label']}>Name: </label>
@@ -211,13 +216,13 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
           </div>
         </div>
       </form>
-      <div
-        style={showErrorMessage ? { display: 'block' } : { display: 'none' }}
-      >
-        {errorMessages.map((errorMessage) => (
-          <div>{errorMessage}</div>
-        ))}
-      </div>
+      {showErrorMessage && (
+        <div>
+          {errorMessages.map((errorMessage) => (
+            <div>{errorMessage}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 });
