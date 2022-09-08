@@ -15,7 +15,6 @@ export const globalState = createContext<{
   value: Item[];
   updateFunction: React.Dispatch<React.SetStateAction<Item[]>>;
 }>({
-  // I have no clue what the hell is with these types
   value: [
     {
       id: '0',
