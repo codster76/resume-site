@@ -1,5 +1,6 @@
 import { FormProvider, useForm } from 'react-hook-form';
 import { Item, itemSchema } from '@resume-site/shared';
+import formStyle from '../css_modules/ItemForm.module.css';
 import {
   forwardRef,
   useContext,
@@ -149,6 +150,7 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
 
   return (
     <div>
+      <h2>{props.typeOfForm === FormType.Add ? 'Add Item' : 'Edit Item'}</h2>
       <form
         onSubmit={handleSubmit((data: Item) => {
           switch (props.typeOfForm) {
@@ -161,48 +163,53 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
           }
         })}
       >
-        <input {...register('id')} type="hidden"></input>
-        <div style={{ display: 'flex' }}>
-          <label>Name: </label>
-          <input
-            {...register('name')}
-            type="text"
-            placeholder="Item Name"
-          ></input>
+        <div className={formStyle['flexContainer']}>
+          <input {...register('id')} type="hidden"></input>
+          <div className={formStyle['flexItem']}>
+            <label className={formStyle['label']}>Name: </label>
+            <input
+              {...register('name')}
+              type="text"
+              placeholder="Item Name"
+            ></input>
+          </div>
+          <div className={formStyle['flexItem']}>
+            <label className={formStyle['label']}>Quantity: </label>
+            <input
+              {...register('quantity', { valueAsNumber: true })} // Note: this register function can set the output type of the form.
+              type="number"
+              step="0.1"
+            ></input>
+          </div>
+          <div className={formStyle['flexItem']}>
+            <label className={formStyle['label']}>Value: </label>
+            <input
+              {...register('value', { valueAsNumber: true })}
+              type="number"
+              step="0.1"
+            ></input>
+          </div>
+          <div className={formStyle['flexItem']}>
+            <label className={formStyle['label']}>Weight: </label>
+            <input
+              {...register('weight', { valueAsNumber: true })}
+              type="number"
+              step="0.1"
+            ></input>
+          </div>
+          <div className={formStyle['flexItem']}>
+            <label className={formStyle['label']}>Description: </label>
+            <textarea
+              {...register('description')}
+              className={formStyle['descriptionField']}
+              placeholder="Description"
+            ></textarea>
+          </div>
+          <div className={formStyle['saveAndDeleteButtons']}>
+            <input type="submit" value="Save Item" />
+            <button onClick={() => deleteCurrentItem()}>Delete Item</button>
+          </div>
         </div>
-        <div style={{ display: 'flex' }}>
-          <label>Description: </label>
-          <input
-            {...register('description')}
-            type="text"
-            placeholder="Description"
-          ></input>
-        </div>
-        <div style={{ display: 'flex' }}>
-          <label>Quantity: </label>
-          <input
-            {...register('quantity', { valueAsNumber: true })} // Note: this register function can set the output type of the form.
-            type="number"
-            step="0.1"
-          ></input>
-        </div>
-        <div style={{ display: 'flex' }}>
-          <label>Value: </label>
-          <input
-            {...register('value', { valueAsNumber: true })}
-            type="number"
-            step="0.1"
-          ></input>
-        </div>
-        <div style={{ display: 'flex' }}>
-          <label>Weight: </label>
-          <input
-            {...register('weight', { valueAsNumber: true })}
-            type="number"
-            step="0.1"
-          ></input>
-        </div>
-        <input type="submit" value="Save Item" />
       </form>
       <div
         style={showErrorMessage ? { display: 'block' } : { display: 'none' }}
@@ -211,8 +218,6 @@ const ItemFormComponent = forwardRef((props: ItemFormComponentProps, ref) => {
           <div>{errorMessage}</div>
         ))}
       </div>
-
-      <button onClick={() => deleteCurrentItem()}>Delete Item</button>
     </div>
   );
 });
