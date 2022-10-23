@@ -4,9 +4,9 @@ export const itemSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
   description: z.string(),
-  value: z.number(),
-  weight: z.number(),
-  quantity: z.number(),
+  value: z.preprocess((val: any) => Number(val), z.number()),
+  weight: z.preprocess((val: any) => Number(val), z.number()),
+  quantity: z.preprocess((val: any) => Number(val), z.number()),
   tags: z.string().array().optional(),
 });
 
