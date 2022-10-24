@@ -1,46 +1,52 @@
 import express from 'express';
-import { uid } from 'uid';
-import { Item, itemSchema } from '@resume-site/shared'; // This is the item type interface
+import { itemSchema, newBagSchema } from '@resume-site/shared'; // This is the item type interface
 import untypedData from '../assets/items.json';
 import { ZodError } from 'zod';
+import { getAllItemsFromBag, getSingleItemFromBag, addItemToBag, createNewBag, modifyItem, deleteItem } from '../app/databaseCalls';
 
-const data = untypedData as unknown as Item[];
+const fullItemList = itemSchema.array().parse(untypedData);
 const router = express.Router();
 
-// Get all items
-router.get('/', (req: any, res: any) => {
-  res.send(data);
+// Used for testing
+router.get('/', async (req: any, res: any) => {
+  // await deleteItem('poopbag', 'poopbagpassword', 'sadfsafaf');
+  res.send(await deleteItem('poopbag', 'poopbagpassword', '6d30df7b-56e9-4b0d-b9bd-75f4c00601e0'));
 });
 
-// Get a specific item based on ID
-router.get('/:id', (req: any, res: any) => {
-  const requestedItem: Item | undefined = data.find((item) => {
-    return item.id === req.params.id;
-  });
+// Get all items from a specific bag
+router.get('/:bagName/:bagPassword', async (req: any, res: any) => {
+  const result = await getAllItemsFromBag(req.params.bagName, req.params.bagPassword);
 
-  if (requestedItem === undefined) {
-    res.status(404);
-    res.send(`Item with ID: ${req.params.id} could not be found`);
-    return;
+  if(isDbError(result)) {
+    res.status(400).send((result as dbError).dbErrorMessage);
+  } else {
+    res.send(result);
   }
-  res.send(requestedItem);
+});
+
+// Get a specific item from a bag based on ID
+router.get('/:bagName/:bagPassword/:itemId', async (req: any, res: any) => {
+  const result = await getSingleItemFromBag(req.params.bagName, req.params.bagPassword, req.params.itemId);
+
+  if(isDbError(result)) {
+    res.status(400).send((result as dbError).dbErrorMessage);
+  } else {
+    res.send(result);
+  }
 });
 
 // Add a new item
-router.post('/', (req: any, res: any) => {
+router.post('/:bagName/:bagPassword', async (req: any, res: any) => {
   try {
     itemSchema.parse(req.body);
 
-    const newItem: Item = {
-      id: req.body.id,
-      name: req.body.name,
-      description: req.body.description,
-      value: req.body.value,
-      weight: req.body.weight,
-      quantity: req.body.quantity,
-    };
-    data.push(newItem);
-    res.send(newItem);
+    const result = await addItemToBag(req.params.bagName, req.params.bagPassword, req.body);
+
+    if(isDbError(result)) {
+      res.status(400).send((result as dbError).dbErrorMessage);
+    } else {
+      res.send(result);
+    }
   } catch (e) {
     if (e instanceof ZodError) {
       res.status(400).send(generateErrorMessage(e));
@@ -52,29 +58,18 @@ router.post('/', (req: any, res: any) => {
   }
 });
 
-// Modify an existing item
-router.put('/:id', (req: any, res: any) => {
-  // Checking if the item to modify exists
-  const itemToFind: Item | undefined = data.find((item) => {
-    return item.id === req.params.id;
-  });
-
-  if (itemToFind === undefined) {
-    res.status(404).send(`Item with ID: ${req.params.id} could not be found`);
-    return;
-  }
-
+// req.body should be an object with a name and password
+router.post('/newbag', async (req: any, res: any) => {
   try {
-    itemSchema.parse(req.body);
+    console.log(newBagSchema.parse(req.body));
 
-    // Modify the item
-    itemToFind.name = req.body.name;
-    itemToFind.description = req.body.description;
-    itemToFind.value = req.body.value;
-    itemToFind.weight = req.body.weight;
-    itemToFind.quantity = req.body.quantity;
+    const result = await createNewBag(req.body.name, req.body.password);
 
-    res.send(data);
+    if(isDbError(result)) {
+      res.status(400).send((result as dbError).dbErrorMessage);
+    } else {
+      res.send(result);
+    }
   } catch (e) {
     if (e instanceof ZodError) {
       res.status(400).send(generateErrorMessage(e));
@@ -86,22 +81,39 @@ router.put('/:id', (req: any, res: any) => {
   }
 });
 
-router.delete('/:id', (req: any, res: any) => {
-  // Checking if the item to modify exists
-  const itemToFind: Item | undefined = data.find((item) => {
-    return item.id === req.params.id;
-  });
+router.put('/:bagName/:bagPassword', async (req: any, res: any) => {
+  try {
+    itemSchema.parse(req.body);
 
-  if (itemToFind === undefined) {
-    res.status(404).send(`Item with ID: ${req.params.id} could not be found`);
-    return;
+    const result = await modifyItem(req.params.bagName, req.params.bagPassword, req.body);
+
+    if(isDbError(result)) {
+      res.status(400).send((result as dbError).dbErrorMessage);
+    } else {
+      res.send(result);
+    }
+  } catch (e) {
+    if (e instanceof ZodError) {
+      res.status(400).send(generateErrorMessage(e));
+      return;
+    } else {
+      res.status(400).send('Invalid item');
+      return;
+    }
   }
-
-  const itemIndex = data.indexOf(itemToFind);
-  res.send(data.splice(itemIndex, 1));
 });
 
-const generateErrorMessage = (errors: ZodError): string => {
+router.delete('/:bagName/:bagPassword/:idToDelete', async (req: any, res: any) => {
+  const result = await deleteItem(req.body.bagName, req.body.bagPassword, req.body.idToDelete);
+
+  if(isDbError(result)) {
+    res.status(400).send((result as dbError).dbErrorMessage);
+  } else {
+    res.send(result);
+  }
+});
+
+function generateErrorMessage(errors: ZodError) {
   let errorMessage = '';
   errors.issues.forEach(
     (error) => (errorMessage += `${error.path[0]} error: ${error.code}, `)
@@ -109,5 +121,13 @@ const generateErrorMessage = (errors: ZodError): string => {
 
   return errorMessage;
 };
+
+export interface dbError {
+  dbErrorMessage: string
+}
+
+export function isDbError(objectToCheck: any) {
+  return 'dbErrorMessage' in objectToCheck;
+}
 
 export default router;

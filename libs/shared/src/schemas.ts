@@ -7,7 +7,12 @@ export const itemSchema = z.object({
   value: z.preprocess((val: any) => Number(val), z.number()),
   weight: z.preprocess((val: any) => Number(val), z.number()),
   quantity: z.preprocess((val: any) => Number(val), z.number()),
-  tags: z.string().array().optional(),
+});
+
+export const newBagSchema = z.object({
+  name: z.string().min(1),
+  password: z.string().min(1)
 });
 
 export type Item = z.infer<typeof itemSchema>; // Creates a new type
+export type NewBagData = z.infer<typeof newBagSchema>; // Creates a new type
