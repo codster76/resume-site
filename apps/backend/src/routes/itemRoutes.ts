@@ -7,12 +7,6 @@ import { getAllItemsFromBag, getSingleItemFromBag, addItemToBag, createNewBag, m
 const fullItemList = itemSchema.array().parse(untypedData);
 const router = express.Router();
 
-// Used for testing
-router.get('/', async (req: any, res: any) => {
-  // await deleteItem('poopbag', 'poopbagpassword', 'sadfsafaf');
-  res.send(await deleteItem('poopbag', 'poopbagpassword', '6d30df7b-56e9-4b0d-b9bd-75f4c00601e0'));
-});
-
 // Get all items from a specific bag
 router.get('/:bagName/:bagPassword', async (req: any, res: any) => {
   const result = await getAllItemsFromBag(req.params.bagName, req.params.bagPassword);
@@ -35,7 +29,7 @@ router.get('/:bagName/:bagPassword/:itemId', async (req: any, res: any) => {
   }
 });
 
-// Add a new item
+// Add a new item to a bag
 router.post('/:bagName/:bagPassword', async (req: any, res: any) => {
   try {
     itemSchema.parse(req.body);
@@ -58,10 +52,11 @@ router.post('/:bagName/:bagPassword', async (req: any, res: any) => {
   }
 });
 
+// Creates a new bag
 // req.body should be an object with a name and password
 router.post('/newbag', async (req: any, res: any) => {
   try {
-    console.log(newBagSchema.parse(req.body));
+    newBagSchema.parse(req.body);
 
     const result = await createNewBag(req.body.name, req.body.password);
 
@@ -71,6 +66,7 @@ router.post('/newbag', async (req: any, res: any) => {
       res.send(result);
     }
   } catch (e) {
+    console.log(e);
     if (e instanceof ZodError) {
       res.status(400).send(generateErrorMessage(e));
       return;
@@ -81,6 +77,8 @@ router.post('/newbag', async (req: any, res: any) => {
   }
 });
 
+// Modifies an item in a specific bag
+// The item to modify is determined by the id of the item in the body
 router.put('/:bagName/:bagPassword', async (req: any, res: any) => {
   try {
     itemSchema.parse(req.body);
@@ -103,6 +101,8 @@ router.put('/:bagName/:bagPassword', async (req: any, res: any) => {
   }
 });
 
+// Delete a specific item from a bag
+// Specifying the bag isn't actually necessary, but it's there for a bit of security
 router.delete('/:bagName/:bagPassword/:idToDelete', async (req: any, res: any) => {
   const result = await deleteItem(req.body.bagName, req.body.bagPassword, req.body.idToDelete);
 
